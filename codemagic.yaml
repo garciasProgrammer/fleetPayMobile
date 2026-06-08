@@ -15,11 +15,18 @@ workflows:
         script: npm ci
       - name: Sincronizar Capacitor
         script: npx cap sync android
+      - name: Configurar keystore
+        script: |
+          echo $CM_KEYSTORE | base64 --decode > /tmp/fleetpay-release.keystore
       - name: Build Android Release
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=/tmp/fleetpay-release.keystore \
+            -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
     artifacts:
       - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/*.aab
