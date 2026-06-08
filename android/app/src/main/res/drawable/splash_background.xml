@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fundo azul FleetPay -->
+    <item android:drawable="@color/splash_background" />
+    <!-- Logo centralizado -->
+    <item
+        android:drawable="@drawable/splash"
+        android:gravity="center"
+        android:width="200dp"
+        android:height="200dp" />
+</layer-list>

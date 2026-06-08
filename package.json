@@ -1,0 +1,41 @@
+{
+  "name": "fleetpay-mobile",
+  "version": "1.0.0",
+  "description": "FleetPay - App Mobile (Capacitor)",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build completo'",
+    "cap:init": "npx cap init FleetPay com.fleetpay.app --web-dir www",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios",
+    "cap:run:android": "npx cap run android",
+    "cap:run:ios": "npx cap run ios"
+  },
+  "keywords": [
+    "fleetpay",
+    "mobile",
+    "capacitor"
+  ],
+  "author": "FleetPay",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/browser": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0",
+    "@capacitor/ios": "^6.2.1",
+    "@capacitor/push-notifications": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
+    "google-auth-library": "^10.7.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "typescript": "^6.0.3"
+  }
+}

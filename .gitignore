@@ -1,0 +1,20 @@
+node_modules/
+.DS_Store
+*.log
+.idea/
+android/.idea/
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+
+# iOS
+ios/App/Pods/
+ios/App/build/
+
+# Firebase (contém dados sensíveis)
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist
+firebase-service-account.json
