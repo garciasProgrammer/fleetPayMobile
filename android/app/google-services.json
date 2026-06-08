@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "561313477518",
+    "project_id": "fleetpay-mobile",
+    "storage_bucket": "fleetpay-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:561313477518:android:6f4bbac3c35d811717aadf",
+        "android_client_info": {
+          "package_name": "com.fleetpay.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHyFiuE6jdgAohb45RgjHYnXwUww5wXx0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
