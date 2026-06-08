@@ -24,9 +24,12 @@ workflows:
       - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/*.aab
     publishing:
-      google_play:
-        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal # internal, alpha, beta, production
+      email:
+        recipients:
+          - garciasProgrammer@gmail.com # Substitua pelo seu email
+        notify:
+          success: true
+          failure: true
 
   ios-workflow:
     name: iOS Build
@@ -63,6 +66,9 @@ workflows:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
-      app_store_connect:
-        auth: integration # Configurar no Codemagic UI
-        submit_to_testflight: true
+      email:
+        recipients:
+          - garciasProgrammer@gmail.com # Substitua pelo seu email
+        notify:
+          success: true
+          failure: true
