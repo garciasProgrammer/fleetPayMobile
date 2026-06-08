@@ -3,12 +3,16 @@ package com.fleetpay.app;
 import android.app.DownloadManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.View;
 import android.view.Window;
@@ -20,14 +24,15 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebResourceRequest;
 import android.widget.Toast;
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
 import com.getcapacitor.BridgeActivity;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
-import android.content.ContentValues;
-import android.provider.MediaStore;
 
 public class MainActivity extends BridgeActivity {
 
@@ -143,7 +148,6 @@ public class MainActivity extends BridgeActivity {
         webView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
             try {
                 if (url.startsWith("blob:") || url.startsWith("data:")) {
-                    // Já tratado pelo JS injetado
                     return;
                 }
 
@@ -182,34 +186,61 @@ public class MainActivity extends BridgeActivity {
         public void saveFile(String base64, String fileName, String mimeType) {
             try {
                 byte[] data = Base64.decode(base64, Base64.DEFAULT);
+                Uri fileUri = null;
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Android 10+ usa MediaStore
                     ContentValues values = new ContentValues();
                     values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
                     values.put(MediaStore.Downloads.MIME_TYPE, mimeType != null ? mimeType : "application/pdf");
                     values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
 
-                    Uri uri = context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                    if (uri != null) {
-                        OutputStream os = context.getContentResolver().openOutputStream(uri);
+                    fileUri = context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    if (fileUri != null) {
+                        OutputStream os = context.getContentResolver().openOutputStream(fileUri);
                         os.write(data);
                         os.flush();
                         os.close();
                     }
                 } else {
-                    // Android 9 e abaixo
                     File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     File file = new File(downloadsDir, fileName);
                     FileOutputStream fos = new FileOutputStream(file);
                     fos.write(data);
                     fos.flush();
                     fos.close();
+                    fileUri = androidx.core.content.FileProvider.getUriForFile(context,
+                            context.getPackageName() + ".fileprovider", file);
                 }
 
-                ((MainActivity) context).runOnUiThread(() ->
-                        Toast.makeText(context, "Salvo em Downloads: " + fileName, Toast.LENGTH_SHORT).show()
-                );
+                // Notificação com botão "Abrir"
+                final Uri openUri = fileUri;
+                final String mime = mimeType != null ? mimeType : "application/pdf";
+                ((MainActivity) context).runOnUiThread(() -> {
+                    Intent openIntent = new Intent(Intent.ACTION_VIEW);
+                    openIntent.setDataAndType(openUri, mime);
+                    openIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                    PendingIntent pendingIntent = PendingIntent.getActivity(
+                            context, 0, openIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "fleetpay_notifications")
+                            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                            .setContentTitle("Download concluído")
+                            .setContentText(fileName)
+                            .setContentIntent(pendingIntent)
+                            .setAutoCancel(true)
+                            .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+                    try {
+                        NotificationManagerCompat.from(context).notify((int) System.currentTimeMillis(), builder.build());
+                    } catch (SecurityException e) {
+                        // Permissão de notificação não concedida
+                    }
+
+                    Toast.makeText(context, "Salvo em Downloads: " + fileName, Toast.LENGTH_SHORT).show();
+                });
+
             } catch (Exception e) {
                 ((MainActivity) context).runOnUiThread(() ->
                         Toast.makeText(context, "Erro ao salvar: " + e.getMessage(), Toast.LENGTH_SHORT).show()
