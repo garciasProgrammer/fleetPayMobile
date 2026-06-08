@@ -25,6 +25,9 @@ import com.getcapacitor.BridgeActivity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import android.content.ContentValues;
+import android.provider.MediaStore;
 
 public class MainActivity extends BridgeActivity {
 
@@ -179,20 +182,37 @@ public class MainActivity extends BridgeActivity {
         public void saveFile(String base64, String fileName, String mimeType) {
             try {
                 byte[] data = Base64.decode(base64, Base64.DEFAULT);
-                File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                File file = new File(downloadsDir, fileName);
 
-                FileOutputStream fos = new FileOutputStream(file);
-                fos.write(data);
-                fos.flush();
-                fos.close();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Android 10+ usa MediaStore
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+                    values.put(MediaStore.Downloads.MIME_TYPE, mimeType != null ? mimeType : "application/pdf");
+                    values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                    Uri uri = context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    if (uri != null) {
+                        OutputStream os = context.getContentResolver().openOutputStream(uri);
+                        os.write(data);
+                        os.flush();
+                        os.close();
+                    }
+                } else {
+                    // Android 9 e abaixo
+                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File file = new File(downloadsDir, fileName);
+                    FileOutputStream fos = new FileOutputStream(file);
+                    fos.write(data);
+                    fos.flush();
+                    fos.close();
+                }
 
                 ((MainActivity) context).runOnUiThread(() ->
                         Toast.makeText(context, "Salvo em Downloads: " + fileName, Toast.LENGTH_SHORT).show()
                 );
-            } catch (IOException e) {
+            } catch (Exception e) {
                 ((MainActivity) context).runOnUiThread(() ->
-                        Toast.makeText(context, "Erro ao salvar arquivo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Erro ao salvar: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
             }
         }
